@@ -4,19 +4,32 @@ import './App.css';
 import Person from './Person';
 
 export default class App extends Component {
+  state = {p: {}};
+
   componentDidMount() {
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
-    // ctx.moveTo(0,0);
-    // ctx.lineTo(100,100);
-    // ctx.stroke();
     var p = new Person({ctx:ctx, x:200, y:300});
-    p.shoot();
-    p.stepForward();
+    this.p = p;
   }
+
+  shoot() {
+    this.p.shoot();
+  }
+
+  stepForward() {
+    this.p.stepForward();
+  }
+
   render() {
     return (
-      <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
+      <div>
+        <canvas id="canvas" height={window.innerHeight - 30} width={window.innerWidth}></canvas>
+        <center><div>
+          <button type="button" id="forward" onClick={() => this.stepForward()}>forward</button>
+          <button type="button" id="forward" onClick={() => this.shoot()}>shoot</button>
+        </div></center>
+      </div>
     );
   }
 }

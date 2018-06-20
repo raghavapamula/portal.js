@@ -6,14 +6,18 @@ export default class Person {
     this.color = "white";
     this.width = 50;
     this.height = 50;
+    this.walk_speed = 1.5;
 
-    this.left_arm = [this.x + this.width/2,this.y + 0.75*this.height, this.width, this.height]; //X, Y, Width, Height
-    this.right_arm = [this.x + this.width/2,this.y + 0.75*this.height, this.width, this.height]; //X, Y, Width, Height
+    this.left_arm = {x:this.width/2, y: 0.75*this.height, width: 0.5*this.width, height: 1.25*this.height}; //X, Y, Width, Height
+    this.right_arm = {x: this.width/2,y: 0.75*this.height, width: 0.5*this.width, height: 1.25*this.height}; //X, Y, Width, Height
 
-    this.left_leg = {x:this.x, y:this.y, width:this.width, height:this.height};
-    this.right_leg = {x:this.x+this.width, y:this.y, width:-this.width, height:this.height};
+    this.arm_length = 0; //Replaced during left arm construction;
 
-    this.inAnimation = false;
+    this.left_leg = {x:0, y:0, width:this.width, height:this.height};
+    this.right_leg = {x:0+this.width, y:0, width:-this.width, height:this.height};
+
+    this.inStep = false;
+    this.rightFootFront = true;
 
     this.render();
   }
@@ -56,9 +60,16 @@ export default class Person {
     const ctx = this.ctx;
     const arms = this.left_arm;
 
+    const from_x = this.x + arms.x;
+    const from_y = this.y + arms.y;
+
+    const to_x = this.x + arms.x - arms.width;
+    const to_y = this.y + arms.y + arms.height;
     ctx.beginPath();
-    ctx.moveTo(arms[0], arms[1]);
-    ctx.lineTo(arms[0]-0.5*arms[2], arms[1]+1.25*arms[3]);
+    ctx.moveTo(from_x, from_y);
+    ctx.lineTo(to_x, to_y);
+    //Pythagorean Theorem
+    this.arm_length = Math.sqrt(Math.pow(to_x - from_x, 2) + Math.pow(to_y - from_y, 2));
     ctx.stroke();
     ctx.closePath();
   }
@@ -67,9 +78,15 @@ export default class Person {
     const ctx = this.ctx;
     const arms = this.right_arm;
 
+    const from_x = this.x + arms.x;
+    const from_y = this.y + arms.y;
+
+    const to_x = this.x + arms.x + arms.width;
+    const to_y = this.y + arms.y + arms.height;
+
     ctx.beginPath();
-    ctx.moveTo(arms[0], arms[1]);
-    ctx.lineTo(arms[0]+0.5*arms[2], arms[1]+1.25*arms[3]);
+    ctx.moveTo(from_x, from_y);
+    ctx.lineTo(to_x, to_y);
     ctx.stroke();
     ctx.closePath();
   }
@@ -79,8 +96,8 @@ export default class Person {
     const ctx = this.ctx;
 
     ctx.beginPath();
-    ctx.moveTo(leg.x+leg.width*0.5,leg.y+3*leg.height);
-    ctx.lineTo(leg.x,leg.y+4.5*leg.height);
+    ctx.moveTo(this.x + leg.x+ leg.width*0.5,this.y + leg.y+3*leg.height);
+    ctx.lineTo(this.x + leg.x,this.y + leg.y+4.5*leg.height);
     ctx.stroke();
     ctx.closePath();
   }
@@ -91,29 +108,96 @@ export default class Person {
     this.drawPerson(this.x, this.y, this.width, this.height);
   }
 
+  rotateArm(which, angle, direction) {
+    const arm = (which === "right") ? this.right_arm : this.left_arm;
+    let increment = direction * this.walk_speed;
+    arm.width = Math.sin(angle) * this.arm_length;
+    arm.height = Math.cos(angle) * this.arm_length;
+
+    if(which === "right") {
+      this.right_arm = arm;
+    }
+    else {
+      this.left_arm = arm;
+    }
+  }
+
   shoot() {
-    const arms = this.right_arm;
-    const length_square = 2*arms[3]*arms[3] + 2*arms[2]*arms[2];
-    const interval = setInterval(() => {
-      arms[3] = arms[3] - 5;
-      arms[2] = Math.sqrt(length_square - arms[3]*arms[3]); //Pythagorean Theorem
-      this.arms = arms;
+    const store_arm = Object.assign({},this.right_arm);
+    console.log(store_arm);
+    const arm = this.right_arm;
+    let right_arm_angle = Math.asin(this.right_arm.width/this.arm_length);
+    const interval = async () => {
+      this.rotateArm("right", right_arm_angle, 1);
+      right_arm_angle += (this.walk_speed * Math.PI / 180);
       this.render();
-      if(arms[3] <= 0) {
-        clearInterval(interval);
+      if(right_arm_angle >= Math.PI/2) {
+        return;
       }
-    },60);
+      requestAnimationFrame(interval);
+    };
+
+    var temp = new Promise(function(resolve,reject) {
+      resolve(requestAnimationFrame(interval));
+    });
+
+    var self = this;
+
+    temp.then(function(value) {
+      self.right_arm = store_arm;
+      self.render();
+      alert("done");
+    });
+  }
+
+  rightLegForward() {
+    this.right_leg.width -= 2*this.walk_speed;
+    this.right_leg.x += this.walk_speed;
+  }
+
+  rightLegBackward() {
+    this.right_leg.width += 2*this.walk_speed;
+    this.right_leg.x -= this.walk_speed;
+  }
+
+  leftLegForward() {
+    this.left_leg.width -= 2*this.walk_speed;
+    this.left_leg.x += this.walk_speed;
+  }
+
+  leftLegBackward() {
+    this.left_leg.width += 2*this.walk_speed;
+    this.left_leg.x -= this.walk_speed;
   }
 
   stepForward() {
+    console.log("stepping forward");
+    if(this.inStep) {
+      return;
+    }
+    this.rightFootFront = !this.rightFootFront;
+    this.inStep = true;
     const temp = this.x;
-    const interval = setInterval(() => {
-      this.x += 1;
-      this.left_leg.width += 1;
+    const movements = () => {
+      this.x += this.walk_speed;
+
+      if(this.rightFootFront) {
+        this.rightLegForward();
+        this.leftLegBackward();
+      }
+
+      else {
+        this.rightLegBackward();
+        this.leftLegForward();
+      }
+
       this.render();
       if(this.x - temp >= this.width) {
-        clearInterval(interval);
+        this.inStep = false;
+        return;
       }
-    },10);
+      requestAnimationFrame(movements);
+    }
+    requestAnimationFrame(movements);
   }
 }
