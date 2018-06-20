@@ -18,6 +18,7 @@ export default class Person {
 
     this.inStep = false;
     this.rightFootFront = true;
+    this.shooting = false;
 
     this.render();
   }
@@ -123,11 +124,16 @@ export default class Person {
   }
 
   shoot() {
-    const store_arm = Object.assign({},this.right_arm);
-    console.log(store_arm);
+    if(this.shooting) {
+      return;
+    }
+    this.shooting = true;
+    const temp_width = this.right_arm.width;
+    const temp_height = this.right_arm.height;
+    
     const arm = this.right_arm;
     let right_arm_angle = Math.asin(this.right_arm.width/this.arm_length);
-    const interval = async () => {
+    let interval = () => {
       this.rotateArm("right", right_arm_angle, 1);
       right_arm_angle += (this.walk_speed * Math.PI / 180);
       this.render();
@@ -135,19 +141,33 @@ export default class Person {
         return;
       }
       requestAnimationFrame(interval);
-    };
+    }
 
-    var temp = new Promise(function(resolve,reject) {
-      resolve(requestAnimationFrame(interval));
-    });
+    requestAnimationFrame(interval);
+    
+    setTimeout(() => {
+      const ctx = this.ctx;
+      var x = this.x + this.right_arm.width + 5 + this.right_arm.x;
+      var y = this.y + this.right_arm.height + this.right_arm.y;
 
-    var self = this;
+      this.right_arm.width = temp_width;
+      this.right_arm.height = temp_height;
+      this.render();
+      this.shooting = false;
 
-    temp.then(function(value) {
-      self.right_arm = store_arm;
-      self.render();
-      alert("done");
-    });
+      ctx.beginPath();
+      let interval = () => {
+      ctx.beginPath();
+      ctx.bezierCurveTo(x, y, x+5, y+5, x+10, y);
+      ctx.bezierCurveTo(x+10, y, x+5, y-5, x, y);
+      ctx.fill();
+      ctx.closePath();
+      x+= this.walk_speed * 4;
+      ctx.clearRect(x-25,y-10,15,20);
+      requestAnimationFrame(interval);
+      }
+      requestAnimationFrame(interval);
+    },1000)
   }
 
   rightLegForward() {
