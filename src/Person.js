@@ -13,13 +13,20 @@ export default class Person {
 
     this.arm_length = 0; //Replaced during left arm construction;
 
-    this.left_leg = {x:0, y:0, width:this.width, height:this.height};
-    this.right_leg = {x:0+this.width, y:0, width:-this.width, height:this.height};
+    this.left_leg = {width:0.5*this.width, height:this.height};
+    this.right_leg = {width:-0.5*this.width, height:this.height};
 
     this.inStep = false;
     this.rightFootFront = true;
     this.shooting = false;
 
+    //height of head + height of body + max of height of legs
+    this.totalHeight = () => 1.8*this.height + 2.25*this.height + Math.max(this.left_leg.height, this.right_leg.height);
+    
+    //overly simplistic for now, but width of left arm + width of right arm
+    this.totalWidth = () => this.left_arm.width + this.right_arm.width;
+
+    this.clear();
     this.render();
   }
 
@@ -97,15 +104,20 @@ export default class Person {
     const ctx = this.ctx;
 
     ctx.beginPath();
-    ctx.moveTo(this.x + leg.x+ leg.width*0.5,this.y + leg.y+3*leg.height);
-    ctx.lineTo(this.x + leg.x,this.y + leg.y+4.5*leg.height);
+    const x = this.x + this.width*0.5;
+    const y = this.y + 3*this.height;
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + leg.width, y + leg.height);
     ctx.stroke();
     ctx.closePath();
   }
 
-  render() {
+  clear() {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, 1500, 1500);
+    ctx.clearRect(this.x - this.left_arm.width, this.y-this.height, 2*this.totalWidth(), this.totalHeight());
+  }
+
+  render() {
     this.drawPerson(this.x, this.y, this.width, this.height);
   }
 
@@ -136,6 +148,7 @@ export default class Person {
     let interval = () => {
       this.rotateArm("right", right_arm_angle, 1);
       right_arm_angle += (this.walk_speed * Math.PI / 180);
+      this.clear();
       this.render();
       if(right_arm_angle >= Math.PI/2) {
         return;
@@ -150,6 +163,8 @@ export default class Person {
       var x = this.x + this.right_arm.width + 5 + this.right_arm.x;
       var y = this.y + this.right_arm.height + this.right_arm.y;
 
+      this.clear(); //clear before modifying Person's dimensions
+
       this.right_arm.width = temp_width;
       this.right_arm.height = temp_height;
       this.render();
@@ -162,8 +177,10 @@ export default class Person {
       ctx.bezierCurveTo(x+10, y, x+5, y-5, x, y);
       ctx.fill();
       ctx.closePath();
-      x+= this.walk_speed * 4;
-      ctx.clearRect(x-25,y-10,15,20);
+      const speed_multiplier = 5;
+      const speed = this.walk_speed * speed_multiplier;
+      ctx.clearRect(x-speed-5,y-10,speed,20);
+      x+= speed;
       requestAnimationFrame(interval);
       }
       requestAnimationFrame(interval);
@@ -171,27 +188,27 @@ export default class Person {
   }
 
   rightLegForward() {
-    this.right_leg.width -= 2*this.walk_speed;
+    this.right_leg.width -= this.walk_speed;
     this.right_leg.x += this.walk_speed;
   }
 
   rightLegBackward() {
-    this.right_leg.width += 2*this.walk_speed;
+    this.right_leg.width += this.walk_speed;
     this.right_leg.x -= this.walk_speed;
   }
 
   leftLegForward() {
-    this.left_leg.width -= 2*this.walk_speed;
+    this.left_leg.width -= this.walk_speed;
     this.left_leg.x += this.walk_speed;
   }
 
   leftLegBackward() {
-    this.left_leg.width += 2*this.walk_speed;
+    this.left_leg.width += this.walk_speed;
     this.left_leg.x -= this.walk_speed;
   }
 
-  stepForward() {
-    console.log("stepping forward");
+  step(direction) {
+    console.log("stepping " + direction);
     if(this.inStep) {
       return;
     }
@@ -199,7 +216,8 @@ export default class Person {
     this.inStep = true;
     const temp = this.x;
     const movements = () => {
-      this.x += this.walk_speed;
+      const multiplier = (direction == "forward" ? 1 : -1);
+      this.x += multiplier * this.walk_speed;
 
       if(this.rightFootFront) {
         this.rightLegForward();
@@ -210,9 +228,17 @@ export default class Person {
         this.rightLegBackward();
         this.leftLegForward();
       }
-
+      this.clear();
       this.render();
-      if(this.x - temp >= this.width) {
+
+      //Forwards walking check
+      if(this.x - temp >= this.width && direction == "forward") {
+        this.inStep = false;
+        return;
+      }
+      
+      //Backwards walking check
+      if(this.x - temp <= -this.width && direction == "backward") {
         this.inStep = false;
         return;
       }

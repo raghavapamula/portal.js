@@ -17,8 +17,9 @@ export default class App extends Component {
     this.p.shoot();
   }
 
-  stepForward() {
-    this.p.stepForward();
+  step(e) {
+    const direction = e.target.id;
+    this.p.step(direction);
   }
 
   render() {
@@ -26,8 +27,9 @@ export default class App extends Component {
       <div>
         <canvas id="canvas" height={window.innerHeight - 30} width={window.innerWidth}></canvas>
         <center><div>
-          <button type="button" id="forward" onClick={() => this.stepForward()}>forward</button>
-          <button type="button" id="forward" onClick={() => this.shoot()}>shoot</button>
+          <button type="button" id="forward" onClick={(e) => this.step(e)}>forward</button>
+          <button type="button" id="backward" onClick={(e) => this.step(e)}>backward</button>
+          <button type="button" id="shoot" onClick={() => this.shoot()}>shoot</button>
         </div></center>
       </div>
     );
