@@ -210,7 +210,7 @@ export default class Person {
         requestAnimationFrame(interval);
       }
       requestAnimationFrame(interval);
-    }, 1000/3)
+    }, 600)
   }
 
   rightLegForward() {
