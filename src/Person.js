@@ -213,6 +213,71 @@ export default class Person {
     }, 600)
   }
 
+  rave() {
+    const ctx = this.ctx;
+    if(this.shooting) {
+      return;
+    }
+    this.shooting = true;
+
+    const temp_width = this.right_arm.width;
+    const temp_height = this.right_arm.height;
+
+    const arm = this.right_arm;
+
+    let right_arm_angle = Math.asin(this.right_arm.width / this.arm_length);
+    let interval = () => {
+      this.rotateArm("right", right_arm_angle, 1);
+      right_arm_angle += 3*(this.walk_speed * Math.PI / 180);
+      this.clear();
+      this.render();
+      if (right_arm_angle >= Math.PI / 2) {
+        return;
+      }
+      requestAnimationFrame(interval);
+    }
+
+    requestAnimationFrame(interval);
+
+    setTimeout(() => {
+      const ctx = this.ctx;
+      var x = this.x + this.right_arm.width + 5 + this.right_arm.x;
+      var y = this.y + this.right_arm.height + this.right_arm.y;
+
+      this.clear(); //clear before modifying Person's dimensions
+
+      this.right_arm.width = temp_width;
+      this.right_arm.height = temp_height;
+      this.render();
+      this.shooting = false;
+
+      ctx.beginPath();
+      var i = 1;
+      let interval = () => {
+        const force = 300;
+        let root = Math.pow(i, 2/5);
+        ctx.beginPath();
+        ctx.moveTo(x+force,y+250/root);
+        ctx.bezierCurveTo(x, y+250/root, x, y, x+force*root, y-250/root);
+        ctx.bezierCurveTo(x, y-250/root, x+1, y, x+force*root, y+250/root);
+
+        //ctx.bezierCurveTo(x+155, y+250/root, x+5, y, x + 155, y-250/root);
+        //ctx.bezierCurveTo(x+155, y-250/root, x+10, y, x + 155, y+250/root);
+
+        ctx.fillStyle = "#1CB9DC";
+        ctx.fill();
+        ctx.closePath();
+        const speed_multiplier = 5;
+        const speed = this.walk_speed * speed_multiplier;
+        ctx.clearRect(x - speed - 5, y + 250/root, speed, 500/root);
+        x += speed;
+        i++
+        requestAnimationFrame(interval);
+      }
+      requestAnimationFrame(interval);
+    }, 600);
+  }
+
   rightLegForward() {
     this.right_leg.width -= this.walk_speed;
   }

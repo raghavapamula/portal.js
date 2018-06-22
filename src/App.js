@@ -22,6 +22,10 @@ export default class App extends Component {
     this.p.step(direction);
   }
 
+  rave() {
+    this.p.rave();
+  }
+
   render() {
     return (
       <div>
@@ -30,6 +34,7 @@ export default class App extends Component {
           <button type="button" id="forward" onClick={(e) => this.step(e)}>forward</button>
           <button type="button" id="backward" onClick={(e) => this.step(e)}>backward</button>
           <button type="button" id="shoot" onClick={() => this.shoot()}>shoot</button>
+          <button type="button" id="rave" onClick={() => this.rave()}>rave</button>
         </div></center>
       </div>
     );
