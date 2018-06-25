@@ -2,12 +2,15 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Person from './Person';
+import paper from 'paper'
 
 export default class App extends Component {
   state = {p: {}};
 
   componentDidMount() {
     var canvas = document.getElementById("canvas");
+    paper.setup(canvas);
+    this.view = paper.view;
     var ctx = canvas.getContext("2d");
     var p = new Person({ctx:ctx, x:200, y:300});
     this.p = p;

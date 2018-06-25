@@ -5,6 +5,7 @@
   "homepage": "https://raghavapamula.github.io/rave/",
   "dependencies": {
     "gh-pages": "^1.2.0",
+    "paper": "^0.11.5",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-scripts": "1.1.4"
