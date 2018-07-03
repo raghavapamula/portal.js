@@ -14,9 +14,8 @@ export default class Person {
     this.shooting = false;
 
     this.view = paper.view;
-    //this.clear();
     this.render();
-    this.walk_speed = 2;
+    this.walk_speed = 5;
   }
 
   drawPerson(x, y, width, height) {
@@ -141,13 +140,30 @@ export default class Person {
     const interval = () => {
       let fulcrum = new paper.Point(arm.upperArm.bounds.x, arm.upperArm.bounds.y);
       let arm_vector = new paper.Point(arm_point(1).x - arm_point(0).x, arm_point(1).y - arm_point(0).y);
-      if(arm_vector.angle <= 0) {
+      
+      if(which == "right" && direction == 1 && arm_vector.angle <= 0) {
         const new_base = arm.foreArm.segments[1];
         return new_base;
       }
+
+      else if(which == "right" && direction == -1 && arm_vector.angle >= 75) {
+        const new_base = arm.foreArm.segments[1];
+        return new_base;
+      }
+
+      else if(which == "left" && direction == -1 && arm_vector.angle >= 180) {
+        const new_base = arm.foreArm.segments[1];
+        return new_base;
+      }
+
+      else if(which == "left" && direction == 1 && arm_vector.angle <= 105) {
+        const new_base = arm.foreArm.segments[1];
+        return new_base;
+      }
+
       else {
-        arm.upperArm.rotate(-5, fulcrum);
-        arm.foreArm.rotate(-5, fulcrum);
+        arm.upperArm.rotate(direction * -5, fulcrum);
+        arm.foreArm.rotate(direction * -5, fulcrum);
         requestAnimationFrame(interval);
       }
     }
@@ -156,16 +172,27 @@ export default class Person {
   }
 
   shoot() {
+    const orientation = 1;
     if (this.shooting) {
       return;
     }
     this.shooting = true;
-    const new_base = this.rotateArm("right", 0, -1, 3);
-    //create bullet
+    const which = orientation ? "right": "left";
+    const arm = orientation ? this.right_arm : this.left_arm;
+    const new_base = this.rotateArm(which, 0, 1, 3);
     const base = new paper.Point(this.body.bounds.x + this.right_arm.upperArm.length + this.right_arm.foreArm.length, this.body.bounds.y);
-    setTimeout(() => {const blast = new Blast({base: base, height: 100})}, 600);
-
-    this.shooting = false;
+    setTimeout(async () => {
+      const blast = new Blast({base: base, height: 100});
+      this.rotateArm(which, 0, -1, 3);
+      setTimeout(() => {
+        this.shooting = false;
+        arm.upperArm.bounds.x = this.body.bounds.x;
+        arm.upperArm.bounds.y = this.body.bounds.y;
+        arm.foreArm.bounds.x = arm.upperArm.segments[1].point.x;
+        arm.foreArm.bounds.y = arm.upperArm.segments[1].point.y;
+      }, 400);
+    },
+    600);
   }
 
   rave() {
@@ -173,50 +200,103 @@ export default class Person {
       return;
     }
     this.shooting = true;
-
     this.rotateArm("right", 0, -1, 3);
-
     this.shooting = false;
   }
 
   rightLegForward() {
-    this.right_leg.lowerLeg.rotate(-3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
-    this.right_leg.upperLeg.rotate(-3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.right_leg.upperLeg.segments[1].point.x;
+    const y2 = this.right_leg.upperLeg.segments[1].point.y;
+    this.right_leg.lowerLeg.rotate(-2, new paper.Point(x, y));
+    this.right_leg.upperLeg.rotate(-2, new paper.Point(x, y));
+    this.right_leg.lowerLeg.rotate(4/3, new paper.Point(x2, y2));
+    this.right_leg.lowerLeg.bounds.y = this.right_leg.upperLeg.segments[1].point.y;
   }
 
   rightLegBackward() {
-    this.right_leg.upperLeg.rotate(3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
-    this.right_leg.lowerLeg.rotate(3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.right_leg.upperLeg.segments[1].point.x;
+    const y2 = this.right_leg.upperLeg.segments[1].point.y;
+    this.right_leg.lowerLeg.rotate(2, new paper.Point(x, y));
+    this.right_leg.upperLeg.rotate(2, new paper.Point(x, y));
+    this.right_leg.lowerLeg.rotate(-4/3, new paper.Point(x2, y2));
+    this.right_leg.lowerLeg.bounds.y = this.right_leg.upperLeg.segments[1].point.y;
   }
 
   leftLegForward() {
-    this.left_leg.lowerLeg.rotate(-3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
-    this.left_leg.upperLeg.rotate(-3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.left_leg.upperLeg.segments[1].point.x;
+    const y2 = this.left_leg.upperLeg.segments[1].point.y;
+    this.left_leg.lowerLeg.rotate(-2, new paper.Point(x, y));
+    this.left_leg.upperLeg.rotate(-2, new paper.Point(x, y));
+    this.left_leg.lowerLeg.rotate(4/3, new paper.Point(x2, y2));
+    this.left_leg.lowerLeg.bounds.y = this.left_leg.upperLeg.segments[1].point.y;
   }
 
   leftLegBackward() {
-    this.left_leg.upperLeg.rotate(3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
-    this.left_leg.lowerLeg.rotate(3, new paper.Point(this.body.bounds.x, this.body.bounds.y + this.body.bounds.height));
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.left_leg.upperLeg.segments[1].point.x;
+    const y2 = this.left_leg.upperLeg.segments[1].point.y;
+    this.left_leg.lowerLeg.rotate(2, new paper.Point(x, y));
+    this.left_leg.upperLeg.rotate(2, new paper.Point(x, y));
+    this.left_leg.lowerLeg.rotate(-4/3, new paper.Point(x2, y2));
+    this.left_leg.lowerLeg.bounds.y = this.left_leg.upperLeg.segments[1].point.y;
   }
 
   step(direction) {
     console.log("stepping " + direction);
-    if (this.inStep) {
+    if (this.inStep || this.shooting) {
       return;
     }
     this.rightFootFront = !this.rightFootFront;
     this.inStep = true;
     const temp = this.x;
+    const right_leg_point = (n) => this.right_leg.upperLeg.segments[n].point;
+    const left_leg_point = (n) => this.left_leg.upperLeg.segments[n].point;
+    const left_angle = () => new paper.Point(left_leg_point(1).x - left_leg_point(0).x, left_leg_point(1).y - left_leg_point(0).y).angle;
+    const right_angle = () => new paper.Point(right_leg_point(1).x - right_leg_point(0).x, right_leg_point(1).y - right_leg_point(0).y).angle;
+    const start_left = left_angle();
+    const start_right = right_angle();
+    const done = "done";
+
     const movements = () => {
       const multiplier = (direction === "forward" ? 1 : -1);
-      this.x += multiplier * this.walk_speed;
+      const x = multiplier * this.walk_speed;
 
-      if (this.rightFootFront) {
-        this.rightLegForward();
-        this.leftLegBackward();
+      this.head.translate(new paper.Point(x, 0));
+      this.body.translate(new paper.Point(x, 0));
+      this.right_leg.upperLeg.translate(new paper.Point(x, 0));
+      this.right_leg.lowerLeg.translate(new paper.Point(x, 0));
+      this.left_leg.upperLeg.translate(new paper.Point(x, 0));
+      this.left_leg.lowerLeg.translate(new paper.Point(x, 0));
+      this.right_arm.foreArm.translate(new paper.Point(x, 0));
+      this.right_arm.upperArm.translate(new paper.Point(x, 0));
+      this.left_arm.foreArm.translate(new paper.Point(x, 0));
+      this.left_arm.upperArm.translate(new paper.Point(x, 0));
+
+      if (!this.rightFootFront) {
+        if(right_angle() <= 100) {
+          this.rightLegBackward();
+          this.leftLegForward();
+        }
+        else {
+          this.inStep = false;
+          return;
+        }
       } else {
-        this.rightLegBackward();
-        this.leftLegForward();
+        if(left_angle() <= 100) {
+          this.rightLegForward();
+          this.leftLegBackward();
+        }
+        else {
+          this.inStep = false;
+          return;
+        }
       }
       requestAnimationFrame(movements);
     }
