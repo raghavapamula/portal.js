@@ -1,223 +1,295 @@
+import paper from 'paper';
+import Blast from './Blast.js';
+
+let mouse_x = 0;
+let mouse_y = 0;
+
 export default class Person {
   constructor(args) {
+    this.strokeWidth = 0.8;
+
     this.x = args.x;
     this.y = args.y;
     this.ctx = args.ctx;
-    this.color = "white";
-    this.width = 50;
-    this.height = 50;
-    this.walk_speed = 1.5;
-
-    this.left_arm = {x:this.width/2, y: 0.75*this.height, width: 0.5*this.width, height: 1.25*this.height}; //X, Y, Width, Height
-    this.right_arm = {x: this.width/2,y: 0.75*this.height, width: 0.5*this.width, height: 1.25*this.height}; //X, Y, Width, Height
-
-    this.arm_length = 0; //Replaced during left arm construction;
-
-    this.left_leg = {x:0, y:0, width:this.width, height:this.height};
-    this.right_leg = {x:0+this.width, y:0, width:-this.width, height:this.height};
-
-    this.inStep = false;
+    
+    this.inStep = [false, "forward"];
     this.rightFootFront = true;
     this.shooting = false;
 
+    this.view = paper.view;
     this.render();
+    this.walk_speed = 5;
+
+    this.right = false;
+    this.left = false;
+
+    // keeps track of player movements for next rerender
+    this.step_forward = false;
+    this.step_backward = false;
+
+    // keeps track of which direction player is facing
+    this.orientation = "right";
   }
 
   drawPerson(x, y, width, height) {
-    this.drawHead(x, y, width, height);
-    this.drawBody(x, y, width, height);
-    this.drawLeg('left');
-    this.drawLeg('right');
+    this.head = this.drawHead(x, y, width, height);
+    this.body = this.drawBody(100);
     this.drawArms();
+    this.drawLegs();
+    const right_leg_point = (n) => this.right_leg.upperLeg.segments[n].point;
+    const left_leg_point = (n) => this.left_leg.upperLeg.segments[n].point;
+    this.left_angle = () => new paper.Point(left_leg_point(1).x - left_leg_point(0).x, left_leg_point(1).y - left_leg_point(0).y).angle;
+    this.right_angle = () => new paper.Point(right_leg_point(1).x - right_leg_point(0).x, right_leg_point(1).y - right_leg_point(0).y).angle;
+    this.starting_left_leg_angle = this.left_angle();
+    this.starting_right_leg_angle = this.right_angle();
   }
 
   drawHead(x, y, width, height) {
-    const ctx = this.ctx;
-    ctx.beginPath();
-    ctx.moveTo(x,y);
-    //bottom half
-    ctx.bezierCurveTo(x,y+height,x+0.9*width,y+height,x+0.9*width,y);
-    //top half
-    ctx.bezierCurveTo(x+width,y-height,x-0.1*width,y-height,x,y);
-    ctx.stroke();
-    ctx.closePath();
+    var center = this.view.center;
+    var path = new paper.Path();
+    path.strokeColor = 'black';
+    path.strokeWidth = this.strokeWidth;
+    path.add(new paper.Point(center.x - 15, center.y + 25));
+    path.add(new paper.Point(center.x - 17, center.y - 25));
+    path.add(new paper.Point(center.x + 17, center.y - 25));
+    path.add(new paper.Point(center.x + 15, center.y + 25));
+    path.closed = true;
+
+    path.position.x -= 100;
+
+    // Create a copy of the path and move it 100pt to the right:
+    var copy = path.clone();
+    path.remove();
+    copy.position.x += 100;
+
+    // Smooth the segments of the copy:
+    copy.smooth();
+
+    return copy;
   }
 
-  drawBody(x, y, width, height) {
-    const ctx = this.ctx;
-    ctx.beginPath();
-    ctx.moveTo(x+width*0.5,y+0.75*height);
-    ctx.lineTo(x+width*0.5,y+3*height);
-    ctx.stroke();
-    ctx.closePath();
+  drawBody(length) {
+    const path = new paper.Path();
+    const base_point = this.head.bounds.bottomCenter;
+    const x = base_point.x;
+    const y = base_point.y;
+    path.strokeColor = 'black';
+    path.strokeWidth = this.strokeWidth;
+    path.add(new paper.Point(x, y));
+    path.add(new paper.Point(x, y + length));
+    return path;
   }
 
   drawArms() {
-    this.drawLeftArm();
-    this.drawRightArm();
+    this.left_arm = this.drawArm("left");
+    this.right_arm = this.drawArm("right");
   }
 
-  drawLeftArm() {
-    const ctx = this.ctx;
-    const arms = this.left_arm;
+  drawArm(type) {
+    const upperArm = new paper.Path();
+    var x = this.body.bounds.x;
+    var y = this.body.bounds.y;
+    const x_multiplier = (type === "right") ? 0.3: -0.3;
 
-    const from_x = this.x + arms.x;
-    const from_y = this.y + arms.y;
+    upperArm.strokeColor = 'black';
+    upperArm.strokeWidth = this.strokeWidth;
+    upperArm.add(new paper.Point(x, y));
+    x += x_multiplier*this.head.bounds.width;
+    y += this.body.bounds.height * 0.6;
+    upperArm.add(x, y);
 
-    const to_x = this.x + arms.x - arms.width;
-    const to_y = this.y + arms.y + arms.height;
-    ctx.beginPath();
-    ctx.moveTo(from_x, from_y);
-    ctx.lineTo(to_x, to_y);
-    //Pythagorean Theorem
-    this.arm_length = Math.sqrt(Math.pow(to_x - from_x, 2) + Math.pow(to_y - from_y, 2));
-    ctx.stroke();
-    ctx.closePath();
+    const foreArm = new paper.Path();
+    foreArm.strokeColor = 'black';
+    foreArm.strokeWidth = this.strokeWidth;
+    foreArm.add(x, y);
+    x += x_multiplier*this.head.bounds.width*0.2;
+    y += this.body.bounds.height * 0.2;
+    foreArm.add(x,y);
+
+    return({upperArm:upperArm, foreArm:foreArm});
   }
 
-  drawRightArm() {
-    const ctx = this.ctx;
-    const arms = this.right_arm;
-
-    const from_x = this.x + arms.x;
-    const from_y = this.y + arms.y;
-
-    const to_x = this.x + arms.x + arms.width;
-    const to_y = this.y + arms.y + arms.height;
-
-    ctx.beginPath();
-    ctx.moveTo(from_x, from_y);
-    ctx.lineTo(to_x, to_y);
-    ctx.stroke();
-    ctx.closePath();
+  drawLegs() {
+    this.left_leg = this.drawLeg("left");
+    this.right_leg = this.drawLeg("right");
   }
 
   drawLeg(type) {
+    const upperLeg = new paper.Path();
     const leg = (type === "left") ? this.left_leg : this.right_leg;
-    const ctx = this.ctx;
+    var x = this.body.bounds.x;
+    var y = this.body.bounds.y + this.body.bounds.height;
+    const x_multiplier = (type === "right") ? 0.2: -0.2;
 
-    ctx.beginPath();
-    ctx.moveTo(this.x + leg.x+ leg.width*0.5,this.y + leg.y+3*leg.height);
-    ctx.lineTo(this.x + leg.x,this.y + leg.y+4.5*leg.height);
-    ctx.stroke();
-    ctx.closePath();
+    upperLeg.strokeColor = 'black';
+    upperLeg.strokeWidth = this.strokeWidth;
+    upperLeg.add(new paper.Point(x, y));
+    x += x_multiplier*this.head.bounds.width;
+    y += this.body.bounds.height * 0.5;
+    upperLeg.add(x, y);
+
+    const lowerLeg = new paper.Path();
+    lowerLeg.strokeColor = 'black';
+    lowerLeg.strokeWidth = this.strokeWidth;
+    lowerLeg.add(x, y);
+    x += x_multiplier*this.head.bounds.width*0.3;
+    y += this.body.bounds.height * 0.5;
+    lowerLeg.add(x,y);
+
+    return({upperLeg: upperLeg, lowerLeg: lowerLeg});
   }
 
   render() {
-    const ctx = this.ctx;
-    ctx.clearRect(0, 0, 1500, 1500);
     this.drawPerson(this.x, this.y, this.width, this.height);
   }
 
-  rotateArm(which, angle, direction) {
-    const arm = (which === "right") ? this.right_arm : this.left_arm;
-    let increment = direction * this.walk_speed;
-    arm.width = Math.sin(angle) * this.arm_length;
-    arm.height = Math.cos(angle) * this.arm_length;
-
-    if(which === "right") {
-      this.right_arm = arm;
+  positionArm(mouse_x, mouse_y) {
+    let fulcrum = new paper.Point(this.body.bounds.x, this.body.bounds.y);
+    const orientation = (mouse_x >= this.body.bounds.x) ? "right" : "left";
+    var arm = this.right_arm;
+    if(orientation == "right") {
+      if(orientation !== this.orientation) {
+        this.orientation = orientation;
+        this.left_arm.upperArm.remove();
+        this.left_arm.foreArm.remove();
+        this.left_arm = this.drawArm("left");
+      }
     }
     else {
-      this.left_arm = arm;
+      arm = this.left_arm;
+      if(orientation !== this.orientation) {
+        this.orientation = orientation;
+        this.right_arm.upperArm.remove();
+        this.right_arm.foreArm.remove();
+        this.right_arm = this.drawArm("right");
+      }
     }
+    const arm_point = segment => arm.upperArm.segments[segment].point;
+    const starting_angle = new paper.Point(arm_point(1).x - arm_point(0).x, arm_point(1).y - arm_point(0).y).angle;
+    const mouse_angle = new paper.Point(mouse_x - arm_point(0).x, mouse_y - arm_point(0).y).angle;
+    const rotation = mouse_angle - starting_angle;
+    arm.upperArm.rotate(rotation, fulcrum);
+    arm.foreArm.rotate(rotation, fulcrum);
   }
 
-  shoot() {
-    if(this.shooting) {
+  shoot(mouse_x, mouse_y) {
+    if (this.shooting) {
       return;
     }
-    this.shooting = true;
-    const temp_width = this.right_arm.width;
-    const temp_height = this.right_arm.height;
-    
-    const arm = this.right_arm;
-    let right_arm_angle = Math.asin(this.right_arm.width/this.arm_length);
-    let interval = () => {
-      this.rotateArm("right", right_arm_angle, 1);
-      right_arm_angle += (this.walk_speed * Math.PI / 180);
-      this.render();
-      if(right_arm_angle >= Math.PI/2) {
-        return;
-      }
-      requestAnimationFrame(interval);
+    const orientation = 1;
+    const arm_point = segment => this.right_arm.foreArm.segments[segment].point;
+    const starting_angle = new paper.Point(arm_point(1).x - arm_point(0).x, arm_point(1).y - arm_point(0).y).angle;
+    const mouse_point = new paper.Point(mouse_x - this.body.bounds.x, mouse_y - this.body.bounds.y);
+    let angle = 0;
+    if(mouse_point.x != 0) {
+      angle = Math.atan(mouse_point.y/mouse_point.x);
+    } else {
+      angle = Math.PI/2;
     }
-
-    requestAnimationFrame(interval);
-    
-    setTimeout(() => {
-      const ctx = this.ctx;
-      var x = this.x + this.right_arm.width + 5 + this.right_arm.x;
-      var y = this.y + this.right_arm.height + this.right_arm.y;
-
-      this.right_arm.width = temp_width;
-      this.right_arm.height = temp_height;
-      this.render();
-      this.shooting = false;
-
-      ctx.beginPath();
-      let interval = () => {
-      ctx.beginPath();
-      ctx.bezierCurveTo(x, y, x+5, y+5, x+10, y);
-      ctx.bezierCurveTo(x+10, y, x+5, y-5, x, y);
-      ctx.fill();
-      ctx.closePath();
-      x+= this.walk_speed * 4;
-      ctx.clearRect(x-25,y-10,15,20);
-      requestAnimationFrame(interval);
-      }
-      requestAnimationFrame(interval);
-    },1000)
+    this.shooting = true;
+    const which = orientation ? "right": "left";
+    const arm = orientation ? this.right_arm : this.left_arm;
+    let direction = (mouse_x >= this.body.bounds.x) ? 1 : -1;
+    const base = new paper.Point(this.body.bounds.x + direction * Math.cos(angle) * (this.right_arm.upperArm.length + this.right_arm.foreArm.length), this.body.bounds.y + direction * Math.sin(angle) * (this.right_arm.upperArm.length + this.right_arm.foreArm.length));
+    setTimeout(async () => {
+      const blast = new Blast({base: base, height: 100, angle: angle, orientation: direction});
+      setTimeout(() => {
+        this.shooting = false;
+      }, 150);
+    },
+    100);
   }
 
   rightLegForward() {
-    this.right_leg.width -= 2*this.walk_speed;
-    this.right_leg.x += this.walk_speed;
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.right_leg.upperLeg.segments[1].point.x;
+    const y2 = this.right_leg.upperLeg.segments[1].point.y;
+    this.right_leg.lowerLeg.rotate(-2, new paper.Point(x, y));
+    this.right_leg.upperLeg.rotate(-2, new paper.Point(x, y));
+    this.right_leg.lowerLeg.rotate(4/3, new paper.Point(x2, y2));
+    this.right_leg.lowerLeg.bounds.y = this.right_leg.upperLeg.segments[1].point.y;
   }
 
   rightLegBackward() {
-    this.right_leg.width += 2*this.walk_speed;
-    this.right_leg.x -= this.walk_speed;
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.right_leg.upperLeg.segments[1].point.x;
+    const y2 = this.right_leg.upperLeg.segments[1].point.y;
+    this.right_leg.lowerLeg.rotate(2, new paper.Point(x, y));
+    this.right_leg.upperLeg.rotate(2, new paper.Point(x, y));
+    this.right_leg.lowerLeg.rotate(-4/3, new paper.Point(x2, y2));
+    this.right_leg.lowerLeg.bounds.y = this.right_leg.upperLeg.segments[1].point.y;
   }
 
   leftLegForward() {
-    this.left_leg.width -= 2*this.walk_speed;
-    this.left_leg.x += this.walk_speed;
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.left_leg.upperLeg.segments[1].point.x;
+    const y2 = this.left_leg.upperLeg.segments[1].point.y;
+    this.left_leg.lowerLeg.rotate(-2, new paper.Point(x, y));
+    this.left_leg.upperLeg.rotate(-2, new paper.Point(x, y));
+    this.left_leg.lowerLeg.rotate(4/3, new paper.Point(x2, y2));
+    this.left_leg.lowerLeg.bounds.y = this.left_leg.upperLeg.segments[1].point.y;
   }
 
   leftLegBackward() {
-    this.left_leg.width += 2*this.walk_speed;
-    this.left_leg.x -= this.walk_speed;
+    const x = this.body.bounds.x;
+    const y = this.body.bounds.y + this.body.bounds.height;
+    const x2 = this.left_leg.upperLeg.segments[1].point.x;
+    const y2 = this.left_leg.upperLeg.segments[1].point.y;
+    this.left_leg.lowerLeg.rotate(2, new paper.Point(x, y));
+    this.left_leg.upperLeg.rotate(2, new paper.Point(x, y));
+    this.left_leg.lowerLeg.rotate(-4/3, new paper.Point(x2, y2));
+    this.left_leg.lowerLeg.bounds.y = this.left_leg.upperLeg.segments[1].point.y;
   }
 
-  stepForward() {
-    console.log("stepping forward");
-    if(this.inStep) {
-      return;
+  step(direction) {
+    console.log("stepping " + direction);
+    if (!this.inStep) {
+      this.inStep = [true, direction]
     }
-    this.rightFootFront = !this.rightFootFront;
-    this.inStep = true;
-    const temp = this.x;
+
     const movements = () => {
-      this.x += this.walk_speed;
+      const multiplier = (direction === "forward" ? 1 : -1);
+      const x = multiplier * this.walk_speed;
 
-      if(this.rightFootFront) {
-        this.rightLegForward();
-        this.leftLegBackward();
-      }
+      this.head.translate(new paper.Point(x, 0));
+      this.body.translate(new paper.Point(x, 0));
+      this.right_leg.upperLeg.translate(new paper.Point(x, 0));
+      this.right_leg.lowerLeg.translate(new paper.Point(x, 0));
+      this.left_leg.upperLeg.translate(new paper.Point(x, 0));
+      this.left_leg.lowerLeg.translate(new paper.Point(x, 0));
+      this.right_arm.foreArm.translate(new paper.Point(x, 0));
+      this.right_arm.upperArm.translate(new paper.Point(x, 0));
+      this.left_arm.foreArm.translate(new paper.Point(x, 0));
+      this.left_arm.upperArm.translate(new paper.Point(x, 0));
 
-      else {
-        this.rightLegBackward();
-        this.leftLegForward();
+      if (!this.rightFootFront) {
+        if(this.right_angle() < 100) {
+          this.rightLegBackward();
+          this.leftLegForward();
+          return;
+        }
+        else {
+          this.inStep = false;
+          this.rightFootFront = !this.rightFootFront;
+          return;
+        }
+      } else {
+        if(this.left_angle() < 100) {
+          this.rightLegForward();
+          this.leftLegBackward();
+          return;
+        }
+        else {
+          this.inStep = false;
+          this.rightFootFront = !this.rightFootFront;
+          return;
+        }
       }
-
-      this.render();
-      if(this.x - temp >= this.width) {
-        this.inStep = false;
-        return;
-      }
-      requestAnimationFrame(movements);
     }
-    requestAnimationFrame(movements);
+    movements();
+    return;
   }
 }
