@@ -69,6 +69,7 @@ export default class App extends Component {
   render() {
     return (
       <div onKeyDown={(e) => alert("D")}>
+        <header><h1><center>Use the mouse to shoot and arrow keys to move</center></h1></header>
         <canvas id="canvas" height={window.innerHeight - 30} width={window.innerWidth}></canvas>
         <center><div>
         </div></center>
