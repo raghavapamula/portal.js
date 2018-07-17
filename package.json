@@ -3,7 +3,7 @@
   "homepage": "http://raghavapamula.github.io/portal.js",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://raghavapamula.github.io/rave/",
+  "homepage": "https://raghavapamula.github.io/portal.js/",
   "dependencies": {
     "paper": "^0.11.5",
     "react": "^16.4.1",
