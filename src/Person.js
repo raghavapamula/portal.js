@@ -6,22 +6,24 @@ let mouse_y = 0;
 
 export default class Person {
   constructor(args) {
-    this.strokeWidth = 0.8;
+    this.strokeWidth = 2.5;
 
-    this.x = args.x;
-    this.y = args.y;
     this.ctx = args.ctx;
-    
+    this.center = args.center;
+
+    this.fillColor = "#b8b6af";
+    this.strokeColor = "#505150";
     this.inStep = [false, "forward"];
     this.rightFootFront = true;
     this.shooting = false;
 
     this.view = paper.view;
     this.render();
-    this.walk_speed = 5;
+    this.walk_speed = 10;
 
     this.right = false;
     this.left = false;
+    this.blasts = []
 
     // keeps track of player movements for next rerender
     this.step_forward = false;
@@ -45,15 +47,16 @@ export default class Person {
   }
 
   drawHead(x, y, width, height) {
-    var center = this.view.center;
+    var center = this.center;
     var path = new paper.Path();
-    path.strokeColor = 'black';
     path.strokeWidth = this.strokeWidth;
+    path.strokeColor = this.strokeColor;
     path.add(new paper.Point(center.x - 15, center.y + 25));
     path.add(new paper.Point(center.x - 17, center.y - 25));
     path.add(new paper.Point(center.x + 17, center.y - 25));
     path.add(new paper.Point(center.x + 15, center.y + 25));
     path.closed = true;
+    path.fillColor = this.fillColor;
 
     path.position.x -= 100;
 
@@ -73,10 +76,10 @@ export default class Person {
     const base_point = this.head.bounds.bottomCenter;
     const x = base_point.x;
     const y = base_point.y;
-    path.strokeColor = 'black';
     path.strokeWidth = this.strokeWidth;
     path.add(new paper.Point(x, y));
     path.add(new paper.Point(x, y + length));
+    path.strokeColor = this.strokeColor;
     return path;
   }
 
@@ -91,7 +94,7 @@ export default class Person {
     var y = this.body.bounds.y;
     const x_multiplier = (type === "right") ? 0.3: -0.3;
 
-    upperArm.strokeColor = 'black';
+    upperArm.strokeColor = this.strokeColor;
     upperArm.strokeWidth = this.strokeWidth;
     upperArm.add(new paper.Point(x, y));
     x += x_multiplier*this.head.bounds.width;
@@ -99,7 +102,7 @@ export default class Person {
     upperArm.add(x, y);
 
     const foreArm = new paper.Path();
-    foreArm.strokeColor = 'black';
+    foreArm.strokeColor = this.strokeColor;
     foreArm.strokeWidth = this.strokeWidth;
     foreArm.add(x, y);
     x += x_multiplier*this.head.bounds.width*0.2;
@@ -121,7 +124,7 @@ export default class Person {
     var y = this.body.bounds.y + this.body.bounds.height;
     const x_multiplier = (type === "right") ? 0.2: -0.2;
 
-    upperLeg.strokeColor = 'black';
+    upperLeg.strokeColor = this.strokeColor;
     upperLeg.strokeWidth = this.strokeWidth;
     upperLeg.add(new paper.Point(x, y));
     x += x_multiplier*this.head.bounds.width;
@@ -129,7 +132,7 @@ export default class Person {
     upperLeg.add(x, y);
 
     const lowerLeg = new paper.Path();
-    lowerLeg.strokeColor = 'black';
+    lowerLeg.strokeColor = this.strokeColor;
     lowerLeg.strokeWidth = this.strokeWidth;
     lowerLeg.add(x, y);
     x += x_multiplier*this.head.bounds.width*0.3;
@@ -192,7 +195,7 @@ export default class Person {
     let direction = (mouse_x >= this.body.bounds.x) ? 1 : -1;
     const base = new paper.Point(this.body.bounds.x + direction * Math.cos(angle) * (this.right_arm.upperArm.length + this.right_arm.foreArm.length), this.body.bounds.y + direction * Math.sin(angle) * (this.right_arm.upperArm.length + this.right_arm.foreArm.length));
     setTimeout(async () => {
-      const blast = new Blast({base: base, height: 100, angle: angle, orientation: direction});
+      this.blasts.push(new Blast({base: base, height: 100, angle: angle, orientation: direction}));
       setTimeout(() => {
         this.shooting = false;
       }, 150);
