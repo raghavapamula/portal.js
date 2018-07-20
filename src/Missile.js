@@ -64,6 +64,8 @@ export default class Missile {
   }
 
   translate() {
+    this.correctAngle(false);
+    
     const x_direction = (this.path.cap.segments[0].point.x < this.path.bottom.segments[0].point.x) ? -1 : 1;
     const y_direction = (this.path.cap.segments[0].point.y < this.path.bottom.segments[0].point.y) ? -1 : 1;
 
