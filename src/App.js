@@ -99,7 +99,7 @@ export default class App extends Component {
   render() {
     return (
       <div onKeyDown={(e) => alert("D")}>
-        <canvas id="canvas" height={window.innerHeight - 30} width={window.innerWidth}></canvas>
+        <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
         <center><div>
         </div></center>
       </div>

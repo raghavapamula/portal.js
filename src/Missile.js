@@ -128,8 +128,13 @@ export default class Missile {
     flame.add(new paper.Point(x - 0.64 * this.length, y + this.height * 0.5));
     flame.add(new paper.Point(x, y - this.height * 0.2));
 
-
-    body.fillColor = '#d0d0d0';
+    body.fillColor = {
+      gradient: {
+          stops: ['#9aa5ab', '#dbecf6', '#9aa5ab'],
+      },
+      origin: new paper.Point(body.bounds.x, body.bounds.y),
+      destination: new paper.Point(body.bounds.x, body.bounds.y + body.bounds.height)
+    }
     body.strokeWidth = this.strokeWidth;
     body.closed = true;
 
@@ -137,7 +142,13 @@ export default class Missile {
     bottom.closed = true;
     bottom.strokeWidth = this.strokeWidth;
 
-    cap.fillColor = 'red';
+    cap.fillColor = {
+      gradient: {
+          stops: ['red', '#ff7a7a', 'red'],
+      },
+      origin: new paper.Point(cap.bounds.x, cap.bounds.y),
+      destination: new paper.Point(cap.bounds.x, cap.bounds.y + cap.bounds.height)
+    }
     cap.closed = true;
     cap.strokeWidth = this.strokeWidth;
 
