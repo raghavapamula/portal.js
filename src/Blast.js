@@ -7,19 +7,20 @@ export default class Blast {
         this.blast = this.render();
         this.angle = args.angle;
         this.orientation = args.orientation;
+        this.time = Date.now();
     }
 
     render() {
         const path = new paper.Path();
-        path.fillColor = "blue";
+        path.fillColor = "#e7df15";
         path.visible = false;
 
         const addPoint = (point1, point2) => new paper.Point(point1.x + point2.x, point1.y + point2.y);
 
         path.add(addPoint(this.base, new paper.Point(0, -this.height/5)));
         path.add(addPoint(this.base, new paper.Point(0, this.height/5)));
-        path.add(addPoint(this.base, new paper.Point(1, this.height/15)));
-        path.add(addPoint(this.base, new paper.Point(1, -this.height/15)));
+        path.add(addPoint(this.base, new paper.Point(3, this.height/15)));
+        path.add(addPoint(this.base, new paper.Point(3, -this.height/15)));
         path.closed = true;
         let path2 = path.clone();
         path.remove();
@@ -42,6 +43,11 @@ export default class Blast {
             }
             scale = scale - 0.0004;
             if(scale <= 0.05) {
+                pieces.map((x) => x.remove());
+                return;
+            }
+            if(Date.now() - this.time >= 2000) {
+                pieces.map((x) => x.remove());
                 return;
             }
             requestAnimationFrame(animate);
