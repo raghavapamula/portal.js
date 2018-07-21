@@ -64,7 +64,7 @@ export default class Missile {
   }
 
   translate() {
-    //this.correctAngle(false); Heatseaking doesn't work as well as I'd like
+    this.correctAngle(false); //Heatseaking doesn't work as well as I'd like
 
     const x_direction = (this.path.cap.segments[0].point.x < this.path.bottom.segments[0].point.x) ? -1 : 1;
     const y_direction = (this.path.cap.segments[0].point.y < this.path.bottom.segments[0].point.y) ? -1 : 1;
