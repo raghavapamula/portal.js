@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import './Portal.css';
 import Background from './Background.js';
 import Person from './Person';
 import Missile from './Missile';
 import paper from 'paper'
 
-export default class App extends Component {
+export default class Portal extends Component {
   componentDidMount() {
     var canvas = document.getElementById("canvas");
+    var rect = canvas.parentNode.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
     paper.setup(canvas);
     this.view = paper.view;
     this.ctx = canvas.getContext("2d");
@@ -24,13 +26,16 @@ export default class App extends Component {
     this.Missiles = []
     document.addEventListener('keyup',   (e) => this.handleKeys(e));
     document.addEventListener('keydown', (e) => this.handleKeys(e));
-    document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+    document.addEventListener('mousemove', (e) => this.handleMouseMove(e, canvas));
     document.onclick = (e) => this.p.shoot(e.x, e.y);
     requestAnimationFrame(() => {this.rerender()});
   }
 
-  handleMouseMove(event) {
-    this.p.positionArm(event.x, event.y);
+  handleMouseMove(event, canvas) {
+    var rect = canvas.getBoundingClientRect();
+    const x = event.x - rect.left;
+    const y = event.y - rect.top;
+    this.p.positionArm(x, y);
   };
 
   rerender() {
