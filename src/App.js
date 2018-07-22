@@ -41,8 +41,8 @@ export default class Portal extends Component {
     var canvas = document.getElementById("canvas");
     var rect = canvas.parentNode.getBoundingClientRect();
 
-    this.view.viewSize.width = rect.width - 50;
-    this.view.viewSize.height = window.innerHeight * 0.5;
+    this.view.viewSize.width = rect.width;
+    this.view.viewSize.height = window.innerHeight;
   }
 
   handleMouseMove(event, canvas) {
