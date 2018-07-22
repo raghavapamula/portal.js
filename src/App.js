@@ -8,10 +8,11 @@ import paper from 'paper'
 export default class Portal extends Component {
   componentDidMount() {
     var canvas = document.getElementById("canvas");
-    window.addEventListener("resize", () => this.handleResize());
+    var rect = canvas.parentNode.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
     paper.setup(canvas);
     this.view = paper.view;
-    this.handleResize();
     this.ctx = canvas.getContext("2d");
 
     var center = this.view.center;
@@ -35,14 +36,6 @@ export default class Portal extends Component {
     const x = event.x - rect.left;
     const y = event.y - rect.top;
     this.p.shoot(x, y);
-  }
-
-  handleResize() {
-    var canvas = document.getElementById("canvas");
-    var rect = canvas.parentNode.getBoundingClientRect();
-
-    this.view.viewSize.width = rect.width;
-    this.view.viewSize.height = window.innerHeight;
   }
 
   handleMouseMove(event, canvas) {
