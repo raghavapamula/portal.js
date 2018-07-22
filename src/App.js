@@ -106,11 +106,7 @@ export default class Portal extends Component {
 
   render() {
     return (
-      <div onKeyDown={(e) => alert("D")}>
-        <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
-        <center><div>
-        </div></center>
-      </div>
+      <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
     );
   }
 }
