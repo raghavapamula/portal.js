@@ -8,9 +8,8 @@ import paper from 'paper'
 export default class Portal extends Component {
   componentDidMount() {
     var canvas = document.getElementById("canvas");
-    var rect = canvas.parentNode.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     paper.setup(canvas);
     this.view = paper.view;
     this.ctx = canvas.getContext("2d");
