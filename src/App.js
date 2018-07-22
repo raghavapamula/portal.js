@@ -27,8 +27,15 @@ export default class Portal extends Component {
     document.addEventListener('keyup',   (e) => this.handleKeys(e));
     document.addEventListener('keydown', (e) => this.handleKeys(e));
     document.addEventListener('mousemove', (e) => this.handleMouseMove(e, canvas));
-    document.onclick = (e) => this.p.shoot(e.x, e.y);
+    document.onclick = (e) => this.shoot(e, canvas);
     requestAnimationFrame(() => {this.rerender()});
+  }
+
+  shoot(event, canvas) {
+    var rect = canvas.getBoundingClientRect();
+    const x = event.x - rect.left;
+    const y = event.y - rect.top;
+    this.p.shoot(x, y);
   }
 
   handleMouseMove(event, canvas) {
@@ -68,10 +75,6 @@ export default class Portal extends Component {
       g.delete();
       this.Missiles.splice(0, 1)
     }
-  }
-
-  shoot() {
-    this.p.shoot();
   }
 
   step(e) {
