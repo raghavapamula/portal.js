@@ -106,7 +106,7 @@ export default class Portal extends Component {
 
   render() {
     return (
-      <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
+        <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
     );
   }
 }
