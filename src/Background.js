@@ -95,7 +95,7 @@ export default class Background {
     drawStar() {
         const x = this.view.bounds.width * Math.random();
         const y = this.view.bounds.height * Math.random();
-        const radius = 0.15 + 3.15 * Math.random();
+        const radius = 0.05 + 3.25 * Math.random();
         var center = new paper.Point(x, y);
 
         var star = new paper.Path.Circle({
