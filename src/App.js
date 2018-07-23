@@ -68,7 +68,7 @@ export default class Portal extends Component {
     this.deleteMissiles();
     for(let i = 0; i < this.background.stars.length; i++) {
       const star = this.background.stars[i];
-      star.translate(new paper.Point(99*star.bounds.width/4, 0));
+      star.translate(new paper.Point(star.bounds.width/4, 0));
       if(star.bounds.x > this.view.bounds.width) {
         star.translate(new paper.Point(-this.view.bounds.width, 0));
       }
