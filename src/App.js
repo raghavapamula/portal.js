@@ -3,9 +3,13 @@ import './Portal.css';
 import Background from './Background.js';
 import Person from './Person';
 import Missile from './Missile';
+import NavBar from './NavBar';
+import Menu from './Menu';
 import paper from 'paper'
 
 export default class Portal extends Component {
+  state = {score: 0, highScore: 0, firstPlay: true, newHighScore: false};
+
   componentDidMount() {
     var canvas = document.getElementById("canvas");
     window.addEventListener("resize", () => this.handleResize());
@@ -27,7 +31,6 @@ export default class Portal extends Component {
     document.addEventListener('keydown', (e) => this.handleKeys(e));
     document.addEventListener('mousemove', (e) => this.handleMouseMove(e, canvas));
     document.onclick = (e) => this.shoot(e, canvas);
-    requestAnimationFrame(() => {this.rerender()});
   }
 
   shoot(event, canvas) {
@@ -42,7 +45,7 @@ export default class Portal extends Component {
     var rect = canvas.parentNode.getBoundingClientRect();
 
     this.view.viewSize.width = window.innerWidth;
-    this.view.viewSize.height = window.innerHeight;
+    this.view.viewSize.height = window.innerHeight - 51;
   }
 
   handleMouseMove(event, canvas) {
@@ -52,7 +55,19 @@ export default class Portal extends Component {
     this.p.positionArm(x, y);
   };
 
+  startGame() {
+    requestAnimationFrame(() => {this.rerender()});
+  }
+
   rerender() {
+    var temp = {...this.state};
+    temp.score++;
+    if(temp.highScore < temp.score) {
+      temp.highScore = temp.score;
+      temp.newHighScore = true;
+    }
+    this.setState(temp);
+
     if(this.p.step_forward || (this.p.inStep[0] && this.p.inStep[1] === "forward")) {
       this.p.step("forward");
       this.p.step_forward = false;
@@ -113,7 +128,13 @@ export default class Portal extends Component {
 
   render() {
     return (
-        <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
+        <div>
+          <div className="container">
+            <NavBar score={this.state.score} highScore={this.state.highScore}/>
+            <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
+          </div>
+          <Menu handleClick={()=>this.startGame()} firstPlay={this.state.firstPlay}/>
+        </div>
     );
   }
 }
