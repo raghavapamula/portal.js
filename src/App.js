@@ -8,7 +8,7 @@ import Menu from './Menu';
 import paper from 'paper'
 
 export default class Portal extends Component {
-  state = {score: 0, highScore: 0, firstPlay: true, newHighScore: false};
+  state = {score: 0, highScore: 0, firstPlay: true, newHighScore: false, menuClass: "menu bigText"};
 
   componentDidMount() {
     var canvas = document.getElementById("canvas");
@@ -56,6 +56,7 @@ export default class Portal extends Component {
   };
 
   startGame() {
+    this.setState({menuClass: "menu bigText hidden"});
     requestAnimationFrame(() => {this.rerender()});
   }
 
@@ -133,7 +134,7 @@ export default class Portal extends Component {
             <NavBar score={this.state.score} highScore={this.state.highScore}/>
             <canvas id="canvas" height={window.innerHeight} width={window.innerWidth}></canvas>
           </div>
-          <Menu handleClick={()=>this.startGame()} firstPlay={this.state.firstPlay}/>
+          <Menu handleClick={()=>this.startGame()} firstPlay={this.state.firstPlay} menuClass={this.state.menuClass}/>
         </div>
     );
   }
