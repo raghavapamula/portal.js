@@ -27,10 +27,9 @@ export default class Blast {
             this.pieces.map((x) => x.remove());
             return;
         }
-        if(Date.now() - this.time >= 1999) {
+        if(Date.now() - this.time >= 1500) {
             this.pieces.map(x => x.remove());
             this.pieces = [];
-            return;
         }
 
         this.realPath.translate(new paper.Point(this.orientation * 20 * Math.cos(this.angle),this.orientation * 20 * Math.sin(this.angle)));
