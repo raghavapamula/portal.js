@@ -67,7 +67,7 @@ export default class Blast {
                 console.log(e);
             }
         }
-        this.realPieces = [];
+        this.pieces = [];
         this.realPieces = [];
     }
 
