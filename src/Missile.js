@@ -2,6 +2,7 @@ import paper from 'paper';
 
 export default class Missile {
   constructor(args) {
+    this.deleted = false;
     this.strokeWidth = 0.8;
 
     this.x = args.x;
@@ -56,11 +57,56 @@ export default class Missile {
         this.path.flame.rotate(rotation, this.path.cap.segments[0].point);
   }
 
+  partHit(a, b) {
+    if(a.getIntersections(b).length > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  hit(p) {
+    var ret = false;
+    if((this.partHit(this.path.body, p.head) && this.partHit(this.path.cap, p.head)) || (this.partHit(this.path.cap, p.body))) {
+      ret = true;
+    } else if((this.partHit(this.path.body, p.right_arm.foreArm) && this.partHit(this.path.cap, p.right_arm.foreArm)) || (this.partHit(this.path.body, p.right_arm.upperArm) && this.partHit(this.path.cap, p.right_arm.upperArm))) {
+      ret = true;
+    } else if((this.partHit(this.path.body, p.left_arm.foreArm) && this.partHit(this.path.cap, p.left_arm.foreArm)) || (this.partHit(this.path.body, p.left_arm.upperArm) && this.partHit(this.path.cap, p.left_arm.upperArm))) {
+      ret = true;
+    } else if((this.partHit(this.path.body, p.right_leg.lowerLeg)) || (this.partHit(this.path.body, p.right_leg.upperLeg))) {
+      ret = true;
+    } else if((this.partHit(this.path.body, p.left_leg.lowerLeg)) || (this.partHit(this.path.body, p.left_leg.upperLeg))) {
+      ret = true;
+    }
+    
+    return ret;
+  }
+
+  explode() {
+    this.delete();
+      var temp = new paper.Path.Star({
+          center: [this.path.cap.bounds.x, this.path.cap.bounds.y],
+          points : 10,
+          radius1: 0.6,
+          radius2: 1,
+          fillColor: "red",
+          strokeColor : "orange",
+          strokeWidth : 10,
+      });
+
+      var segs = temp.segments;
+      var ang = 0;
+      for (var i = 0; i<segs.length; i++) {
+          ang += 360/(50)
+      }
+    return temp;
+  }
+
   delete() {
     this.path.bottom.remove();
     this.path.body.remove();
     this.path.cap.remove();
     this.path.flame.remove();
+    this.deleted = true;
   }
 
   translate() {

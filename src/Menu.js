@@ -10,7 +10,7 @@ export default class Menu extends Component {
                     <p class="button" onClick={()=>this.props.handleClick()}>Play</p>
                 </div>
             );
-        } else if(this.props.score == 0) {
+        } else if(this.props.score < 500) {
             return(
                 <div class={this.props.menuClass}>
                     <p>Game Over!</p>
