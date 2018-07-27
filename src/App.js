@@ -64,13 +64,7 @@ export default class Portal extends Component {
   }
 
   endGame() {
-    for(let i=0; i < this.Missiles.length; i++) {
-      this.Missiles[i].delete();
-    }
-    for(let i=0; i < this.p.blasts.length; i++) {
-      this.p.blasts[i].remove();
-    }
-    this.Missiles = [];
+    this.componentDidMount();
     this.setState({firstPlay: false, gameStarted: false, menuClass: "menu bigText"});
   }
 
@@ -94,7 +88,7 @@ export default class Portal extends Component {
       this.p.step("backward");
       this.p.step_backward = false;
     }
-    if(Math.random() > Math.pow(0.98, this.state.score/1500) && this.Missiles.length < 8 + this.state.score / 25000) {
+    if(Math.random() > Math.pow(0.97, this.state.score/4500) - 0.03 && this.Missiles.length < 4 + this.state.score / 25000) {
       this.Missiles.push(new Missile({ctx: this.ctx, x: this.view.bounds.width * Math.random(), y: 10, target: this.p.body.segments[0].point}));
     }
     this.Missiles.map(x => x.translate());
